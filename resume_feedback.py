@@ -10,6 +10,7 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
+
     st.success("Resume uploaded successfully!")
     st.write("File Name:", uploaded_file.name)
 

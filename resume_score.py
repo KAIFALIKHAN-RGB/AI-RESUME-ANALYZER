@@ -10,6 +10,7 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
+
     st.success("Resume uploaded successfully!")
     st.write("File Name:", uploaded_file.name)
 
@@ -87,12 +88,3 @@ if uploaded_file is not None:
     st.progress(int(score))
 
     st.success(f"Your Resume Score is: {score:.2f}%")
-
-    # Resume Feedback
-    st.subheader("Resume Feedback")
-    if score >= 80:
-        st.success("Excellent! Your resume is well-aligned with the desired skills.")
-    elif score >= 50:
-        st.warning("Good! Your resume has some of the required skills, but there's room for improvement.")
-    else:
-        st.error("Needs Improvement. Consider adding more relevant skills to your resume.")
