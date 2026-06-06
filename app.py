@@ -1,13 +1,57 @@
 import streamlit as st
-import PyPDF2
-import docx
+from resume.pdf_reader import extract_pdf_text
+from resume.docx_reader import extract_docx_text
 
-st.title("AI Resume Analyzer")
+from analyzer.skill_matcher import analyze_skills
+from analyzer.scorer import calculate_score
+from analyzer.jd_matcher import jd_match  
+st.set_page_config(
+    page_title="AI Resume Analyzer",
+    page_icon="📄",
+    layout="wide"
+)  
+with st.sidebar:
 
-uploaded_file = st.file_uploader(
-    "Upload your resume (PDF, DOCX)",
-    type=["pdf", "docx"]
-)
+    st.header("About")
+
+    st.write(
+        """
+        Upload your resume and compare it
+        against a job description.
+        """
+    )
+st.markdown("""
+<div style='text-align:center'>
+<h1>📄 AI Resume Analyzer</h1>
+<h4>Get Resume Score, Skill Analysis & JD Match Percentage</h4>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns(2)
+with col1:
+
+    st.markdown(
+        """
+        ## Upload Your Resume
+        - Supported formats: PDF, DOCX
+        - Get insights on your skills and resume score
+        """
+    )
+    uploaded_file = st.file_uploader(
+         "Upload your resume (PDF, DOCX)",
+          type=["pdf", "docx"]
+      )
+
+with col2:
+   
+    st.markdown(
+        """
+        ## Job Description
+        - Paste the job description here
+        - Only skills will be analyzed
+        """
+    )
+    jd_text = st.text_area("Paste the Job Description here(Only Skills will be analyzed)")
 
 if uploaded_file is not None:
     st.success("Resume uploaded successfully!")
@@ -18,45 +62,41 @@ if uploaded_file is not None:
 
     if file_name.endswith(".pdf"):
         # Read PDF
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        for page in pdf_reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
+        text = extract_pdf_text(uploaded_file)
     elif file_name.endswith(".docx"):
         # Read DOCX
-        doc = docx.Document(uploaded_file)
-        full_text = []
-        for para in doc.paragraphs:
-            full_text.append(para.text)
-        for table in doc.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    full_text.append(cell.text)
-        text = "\n".join(full_text)
+        text = extract_docx_text(uploaded_file)
 
     text = text.lower()
+    if jd_text:
+
+     matched_skills, jd_missing_skills, match_percentage = jd_match(
+        text,
+        jd_text
+    )
+
+    st.subheader("JD Match Percentage")
+
+    st.progress(int(match_percentage))
+
+    st.success(
+        f"Match Percentage: {match_percentage:.2f}%"
+    )
+
+    st.subheader("Matched Skills")
+
+    if matched_skills:
+        for skill in matched_skills:
+            st.success(skill)
+
+    st.subheader("Missing JD Skills")
+
+    if jd_missing_skills:
+        for skill in jd_missing_skills:
+            st.error(skill)
 
     # Skills list
-    skills = [
-        "python",
-        "java",
-        "sql",
-        "html",
-        "css",
-        "machine learning",
-        "data analysis"
-    ]
-
-    found_skills = []
-    missing_skills = []
-
-    # Skill checking
-    for skill in skills:
-        if skill in text:
-            found_skills.append(skill)
-        else:
-            missing_skills.append(skill)
+    found_skills, missing_skills, skills = analyze_skills(text)
 
     # Found Skills
     st.subheader("Skills Found in Resume")
@@ -77,10 +117,7 @@ if uploaded_file is not None:
         st.success("Great! All listed skills are present.")
 
     # Resume Score
-    total_skills = len(skills)
-    found_count = len(found_skills)
-
-    score = (found_count / total_skills) * 100
+    score = calculate_score(found_skills, len(skills))
 
     st.subheader("Resume Score")
 
