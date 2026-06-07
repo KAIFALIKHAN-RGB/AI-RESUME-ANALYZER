@@ -1,3 +1,5 @@
+## Git Learning Journey
+Learning Git using AI Resume Analyzer
 AI Resume Analyzer
 
 A Streamlit-based application that analyzes resumes and provides feedback, skill detection, and resume scoring.
