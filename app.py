@@ -4,12 +4,15 @@ from resume.docx_reader import extract_docx_text
 
 from analyzer.skill_matcher import analyze_skills
 from analyzer.scorer import calculate_score
-from analyzer.jd_matcher import jd_match  
+from analyzer.jd_matcher import jd_match
+
+
 st.set_page_config(
     page_title="AI Resume Analyzer",
     page_icon="📄",
     layout="wide"
-)  
+)
+
 with st.sidebar:
 
     st.header("About")
@@ -20,6 +23,7 @@ with st.sidebar:
         against a job description.
         """
     )
+
 st.markdown("""
 <div style='text-align:center'>
 <h1>📄 AI Resume Analyzer</h1>
@@ -38,12 +42,12 @@ with col1:
         """
     )
     uploaded_file = st.file_uploader(
-         "Upload your resume (PDF, DOCX)",
-          type=["pdf", "docx"]
-      )
+        "Upload your resume (PDF, DOCX)",
+        type=["pdf", "docx"]
+    )
 
 with col2:
-   
+
     st.markdown(
         """
         ## Job Description
@@ -51,7 +55,7 @@ with col2:
         - Only skills will be analyzed
         """
     )
-    jd_text = st.text_area("Paste the Job Description here(Only Skills will be analyzed)")
+    jd_text = st.text_area("Paste the Job Description here")
 
 if uploaded_file is not None:
     st.success("Resume uploaded successfully!")
@@ -60,40 +64,51 @@ if uploaded_file is not None:
     file_name = uploaded_file.name.lower()
     text = ""
 
-    if file_name.endswith(".pdf"):
-        # Read PDF
-        text = extract_pdf_text(uploaded_file)
-    elif file_name.endswith(".docx"):
-        # Read DOCX
-        text = extract_docx_text(uploaded_file)
+    try:
+        if file_name.endswith(".pdf"):
+            # Read PDF
+            text = extract_pdf_text(uploaded_file)
+        elif file_name.endswith(".docx"):
+            # Read DOCX
+            text = extract_docx_text(uploaded_file)
+        else:
+            st.error("Unsupported file type. Please upload a PDF or DOCX.")
+            st.stop()
+    except ValueError as e:
+        st.error(f"Failed to read file: {e}")
+        st.stop()
 
     text = text.lower()
+
+    if not text.strip():
+        st.warning("Could not extract text from the uploaded file. Please check the file.")
+        st.stop()
+
     if jd_text:
+        matched_skills, jd_missing_skills, match_percentage = jd_match(
+            text,
+            jd_text
+        )
 
-     matched_skills, jd_missing_skills, match_percentage = jd_match(
-        text,
-        jd_text
-    )
+        st.subheader("JD Match Percentage")
 
-    st.subheader("JD Match Percentage")
+        st.progress(int(match_percentage))
 
-    st.progress(int(match_percentage))
+        st.success(
+            f"Match Percentage: {match_percentage:.2f}%"
+        )
 
-    st.success(
-        f"Match Percentage: {match_percentage:.2f}%"
-    )
+        st.subheader("Matched Skills")
 
-    st.subheader("Matched Skills")
+        if matched_skills:
+            for skill in matched_skills:
+                st.success(skill)
 
-    if matched_skills:
-        for skill in matched_skills:
-            st.success(skill)
+        st.subheader("Missing JD Skills")
 
-    st.subheader("Missing JD Skills")
-
-    if jd_missing_skills:
-        for skill in jd_missing_skills:
-            st.error(skill)
+        if jd_missing_skills:
+            for skill in jd_missing_skills:
+                st.error(skill)
 
     # Skills list
     found_skills, missing_skills, skills = analyze_skills(text)
