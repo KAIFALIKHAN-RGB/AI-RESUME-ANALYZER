@@ -10,11 +10,11 @@ def get_resume_feedback(resume_text, jd_text):
     prompt = f"""
     Analyze the resume against the job description.
 
-    Give:
-    1. Resume Strengths
-    2. Missing Skills
-    3. ATS Optimization Tips
-    4. Resume Improvement Suggestions
+    Give ONLY the following feedback in a concise format:
+    1. Top 3 Resume Strengths
+    2. Top 3 Missing Skills
+    3. Top 3 ATS Optimization Tips
+    4. Top 3 Resume Improvement Suggestions
 
     Resume:
     {resume_text}

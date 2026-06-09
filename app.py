@@ -102,8 +102,14 @@ if uploaded_file is not None:
         st.subheader("Matched Skills")
 
         if matched_skills:
-            for skill in matched_skills:
-                st.success(skill)
+            col1, col2 = st.columns(2)
+            for i, skill in enumerate(matched_skills):
+                if i % 2 == 0:
+                    with col1:
+                        st.success(skill)
+                else:
+                    with col2:
+                        st.success(skill)
 
         st.subheader("Missing JD Skills")
 
@@ -111,20 +117,40 @@ if uploaded_file is not None:
             for skill in jd_missing_skills:
                 st.error(skill)
 
+        else:
+            st.success("🥳Great! All JD skills are present in your resume.")
+
         # ===== Gemini AI Feedback =====
 
         st.subheader("🤖 Gemini AI Feedback")
 
         with st.spinner("Analyzing Resume with Gemini AI..."):
-          feedback = get_resume_feedback(
-            text,
-             jd_text
-    )
+          try:
+             feedback = get_resume_feedback(
+                text,
+                jd_text
+            )
+          except Exception as e:
+             st.error(f"Error getting feedback from Gemini AI: {e}")
+             feedback = "Unable to retrieve feedback at this time."
 
-        st.markdown(feedback)
+        with st.expander("View Gemini AI Feedback"):
+         st.markdown(feedback)
 
     # Skills list
     found_skills, missing_skills, skills = analyze_skills(text)
+    total_skills = len(skills)
+    score = calculate_score(found_skills, total_skills)
+
+    st.subheader("📊 Resume Metrics Dashboard")
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Resume Score", f"{score:.2f}%")
+    metric_cols[1].metric("Found Skills", len(found_skills), f"of {total_skills}")
+    metric_cols[2].metric("Missing Skills", len(missing_skills))
+    if jd_text:
+        metric_cols[3].metric("JD Match", f"{match_percentage:.2f}%", f"{len(matched_skills)} skills matched")
+    else:
+        metric_cols[3].metric("JD Match", "N/A", "Add a job description")
 
     # Found Skills
     st.subheader("Skills Found in Resume")
@@ -145,18 +171,16 @@ if uploaded_file is not None:
         st.success("Great! All listed skills are present.")
 
     # Resume Score
-    score = calculate_score(found_skills, len(skills))
 
-    st.subheader("Resume Score")
-
+    st.subheader("📜 Resume Score")
     st.progress(int(score))
-
     st.success(f"Your Resume Score is: {score:.2f}%")
 
     # Resume Feedback
-    st.subheader("Resume Feedback")
+    st.subheader("💡 Resume Recommendation")
     if score >= 80:
         st.success("Excellent! Your resume is well-aligned with the desired skills.")
+        st.balloons()
     elif score >= 50:
         st.warning("Good! Your resume has some of the required skills, but there's room for improvement.")
     else:
