@@ -5,6 +5,7 @@ from resume.docx_reader import extract_docx_text
 from analyzer.skill_matcher import analyze_skills
 from analyzer.scorer import calculate_score
 from analyzer.jd_matcher import jd_match
+from utils.gemini_feedback import get_resume_feedback
 
 
 st.set_page_config(
@@ -110,6 +111,18 @@ if uploaded_file is not None:
             for skill in jd_missing_skills:
                 st.error(skill)
 
+        # ===== Gemini AI Feedback =====
+
+        st.subheader("🤖 Gemini AI Feedback")
+
+        with st.spinner("Analyzing Resume with Gemini AI..."):
+          feedback = get_resume_feedback(
+            text,
+             jd_text
+    )
+
+        st.markdown(feedback)
+
     # Skills list
     found_skills, missing_skills, skills = analyze_skills(text)
 
@@ -147,4 +160,6 @@ if uploaded_file is not None:
     elif score >= 50:
         st.warning("Good! Your resume has some of the required skills, but there's room for improvement.")
     else:
+        feedback = get_resume_feedback(text, jd_text)
         st.error("Needs Improvement. Consider adding more relevant skills to your resume.")
+        st.text_area("Feedback:", value=feedback, height=200)

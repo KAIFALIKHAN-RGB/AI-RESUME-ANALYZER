@@ -3,3 +3,4 @@ myenv/
 venv-practise/myenv/
 __pycache__/
 *.pyc
+.streamlit/
