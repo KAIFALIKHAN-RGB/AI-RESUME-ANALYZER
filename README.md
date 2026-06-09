@@ -37,3 +37,21 @@ AI-RESUME-ANALYZER
 ├── requirements.txt
 ├── README.md
 └── .gitignore
+
+## Screenshots
+
+### Home Page
+
+![Home](screenshots/home.png)
+
+### Skills Analysis
+
+![Skills Analysis](screenshots/skills-analysis.png)
+
+### JD Match
+
+![JD Match](screenshots/jd-match.png)
+
+### Gemini AI Feedback
+
+![Gemini Feedback](screenshots/gemini-feedback.png)
