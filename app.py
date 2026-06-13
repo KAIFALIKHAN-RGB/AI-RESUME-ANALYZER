@@ -1,11 +1,8 @@
 import streamlit as st
 from resume.pdf_reader import extract_pdf_text
 from resume.docx_reader import extract_docx_text
+from utils.gemini_analyzer import analyze_resume
 
-from analyzer.skill_matcher import analyze_skills
-from analyzer.scorer import calculate_score
-from analyzer.jd_matcher import jd_match
-from utils.gemini_feedback import get_resume_feedback
 
 
 st.set_page_config(
@@ -58,6 +55,7 @@ with col2:
     )
     jd_text = st.text_area("Paste the Job Description here")
 
+
 if uploaded_file is not None:
     st.success("Resume uploaded successfully!")
     st.write("File Name:", uploaded_file.name)
@@ -79,29 +77,37 @@ if uploaded_file is not None:
         st.error(f"Failed to read file: {e}")
         st.stop()
 
-    text = text.lower()
+    #text = text.lower()
 
     if not text.strip():
         st.warning("Could not extract text from the uploaded file. Please check the file.")
         st.stop()
+    if jd_text.strip():
+        analysis = analyze_resume(text, jd_text)
+    else:
+        analysis = analyze_resume(text)
+    
+    profession = analysis.get("profession", "Profession not detected")
+    skills = analysis.get("resume_skills", [])
+    missing_resume_skills = analysis.get("missing_resume_skills", [])
+    strengths = analysis.get("strengths", [])
+    weaknesses = analysis.get("weaknesses", [])
+    resume_score = analysis.get("resume_score", 0.0)
+    feedback = analysis.get("feedback", "No feedback available")
+    match_percentage = analysis.get("match_percentage", 0.0)
+    matched_skills = analysis.get("matched_skills", [])
+    jd_missing_skills = analysis.get("missing_skills", [])
+    skills = skills[:5]
+    missing_resume_skills = missing_resume_skills[:5]
+    matched_skills = matched_skills[:5]
+    jd_missing_skills = jd_missing_skills[:5] 
 
-    if jd_text:
-        matched_skills, jd_missing_skills, match_percentage = jd_match(
-            text,
-            jd_text
-        )
-
-        st.subheader("JD Match Percentage")
-
-        st.progress(int(match_percentage))
-
-        st.success(
-            f"Match Percentage: {match_percentage:.2f}%"
-        )
-
-        st.subheader("Matched Skills")
-
-        if matched_skills:
+    if jd_text.strip():
+      st.subheader("JD Match Percentage")
+      st.progress(int(match_percentage))
+      st.success(f"Match Percentage: {match_percentage:.2f}%")
+      st.subheader("Matched Skills")
+      if matched_skills:
             col1, col2 = st.columns(2)
             for i, skill in enumerate(matched_skills):
                 if i % 2 == 0:
@@ -110,42 +116,50 @@ if uploaded_file is not None:
                 else:
                     with col2:
                         st.success(skill)
+      else:
+            st.info("No matched JD skills found.")
 
-        st.subheader("Missing JD Skills")
-
-        if jd_missing_skills:
+      st.subheader("Missing JD Skills")
+      if jd_missing_skills:
             for skill in jd_missing_skills:
                 st.error(skill)
+      else:
+            st.success("🥳 Great! All JD skills are present in your resume.")
 
-        else:
-            st.success("🥳Great! All JD skills are present in your resume.")
+    st.subheader("🎯 Detected Profession")
+    st.success(profession)
 
-        # ===== Gemini AI Feedback =====
+    st.subheader("🛠 Skills Identified")
+    for skill in skills:
+        st.info(skill)
 
-        st.subheader("🤖 Gemini AI Feedback")
+    st.subheader("💪 Strengths")
+    for strength in strengths:
+        st.success(strength)
 
-        with st.spinner("Analyzing Resume with Gemini AI..."):
-          try:
-             feedback = get_resume_feedback(
-                text,
-                jd_text
-            )
-          except Exception as e:
-             st.error(f"Error getting feedback from Gemini AI: {e}")
-             feedback = "Unable to retrieve feedback at this time."
+    st.subheader("⚠ Areas for Improvement")
+    for weakness in weaknesses:
+        st.warning(weakness)
 
-        with st.expander("View Gemini AI Feedback"):
-         st.markdown(feedback)
+    with st.expander("View Gemini AI Feedback"):
+        st.markdown(feedback)
 
-    # Skills list
-    found_skills, missing_skills, skills = analyze_skills(text)
-    total_skills = len(skills)
-    score = calculate_score(found_skills, total_skills)
+    if jd_text.strip():
+        score = match_percentage
+    else:
+        score = resume_score
+        
+    if jd_text.strip():
+        found_skills = matched_skills
+        missing_skills = jd_missing_skills
+    else:
+        found_skills = skills
+        missing_skills = missing_resume_skills
 
     st.subheader("📊 Resume Metrics Dashboard")
     metric_cols = st.columns(4)
     metric_cols[0].metric("Resume Score", f"{score:.2f}%")
-    metric_cols[1].metric("Found Skills", len(found_skills), f"of {total_skills}")
+    metric_cols[1].metric("Found Skills", len(found_skills))
     metric_cols[2].metric("Missing Skills", len(missing_skills))
     if jd_text:
         metric_cols[3].metric("JD Match", f"{match_percentage:.2f}%", f"{len(matched_skills)} skills matched")
@@ -184,6 +198,4 @@ if uploaded_file is not None:
     elif score >= 50:
         st.warning("Good! Your resume has some of the required skills, but there's room for improvement.")
     else:
-        feedback = get_resume_feedback(text, jd_text)
-        st.error("Needs Improvement. Consider adding more relevant skills to your resume.")
-        st.text_area("Feedback:", value=feedback, height=200)
+        st.error("Needs Improvement. Consider adding more relevant skills to your resume.")      
