@@ -51,8 +51,8 @@ AI-RESUME-ANALYZER/
 
 Clone the repository:
 
-git clone https://github.com/<KAIFALIKHAN-RGB>/AI-Resume-Analyzer.git
-cd AI-Resume-Analyzer
+git clone https://github.com/KAIFALIKHAN-RGB/AI-RESUME-ANALYZER.git
+cd AI-RESUME-ANALYZER
 Install dependencies:
 
 pip install -r requirements.txt
@@ -129,7 +129,7 @@ Kaif
 
 Computer Science Undergraduate | AI & Software Development Enthusiast
 
-GitHub: https://github.com/<KAIFALIKHAN-RGB>
+GitHub: https://github.com/KAIFALIKHAN-RGB
 
 LinkedIn: https://www.linkedin.com/in/kaif-ali-khan-0261a1359/
 
