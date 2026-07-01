@@ -100,8 +100,10 @@ def analyze_resume(resume_text,jd_text=None):
     Job Description:
     {jd_text}
     """
-
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(prompt)
+    except Exception as e:
+        raise RuntimeError("Gemini API request failed. Please check your API key and network connection.") from e
 
     cleaned_response = response.text.strip()
 

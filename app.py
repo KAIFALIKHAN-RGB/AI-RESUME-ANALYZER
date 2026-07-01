@@ -6,7 +6,7 @@ from utils.gemini_analyzer import analyze_resume
 
 
 st.set_page_config(
-    page_title="AI Resume Analyzer",
+    page_title="AI-Powered Resume Analyzer",
     page_icon="📄",
     layout="wide"
 )
@@ -57,7 +57,6 @@ with col2:
 
 
 if uploaded_file is not None:
-    st.success("Resume uploaded successfully!")
     st.write("File Name:", uploaded_file.name)
 
     file_name = uploaded_file.name.lower()
@@ -82,10 +81,15 @@ if uploaded_file is not None:
     if not text.strip():
         st.warning("Could not extract text from the uploaded file. Please check the file.")
         st.stop()
-    if jd_text.strip():
-        analysis = analyze_resume(text, jd_text)
-    else:
-        analysis = analyze_resume(text)
+    try:
+      with st.spinner("🤖 Analyzing resume against job description..."):    
+         if jd_text.strip():
+            analysis = analyze_resume(text, jd_text)
+         else:
+            analysis = analyze_resume(text)
+    except Exception as e:
+        st.error("❌ Gemini API request failed. Please check your API key and network connection.")
+        st.stop()
     
     profession = analysis.get("profession", "Profession not detected")
     skills = analysis.get("resume_skills", [])
@@ -198,4 +202,9 @@ if uploaded_file is not None:
     elif score >= 50:
         st.warning("Good! Your resume has some of the required skills, but there's room for improvement.")
     else:
-        st.error("Needs Improvement. Consider adding more relevant skills to your resume.")      
+        st.error("Needs Improvement. Consider adding more relevant skills to your resume.")     
+    st.markdown("---")
+    st.markdown(
+    "<center>❤️ Built with Streamlit • Google Gemini • Python by Kaif</center>",
+    unsafe_allow_html=True,
+    )
