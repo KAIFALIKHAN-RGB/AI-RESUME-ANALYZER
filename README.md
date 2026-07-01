@@ -1,6 +1,10 @@
 # 🚀 AI Resume Analyzer
 
-An AI-powered Resume Analyzer built with Python, Streamlit, and Google's Gemini AI. The application analyzes resumes, detects profession-specific skills, identifies skill gaps, calculates a resume score, and provides personalized AI feedback. It also supports Job Description (JD) matching to evaluate how well a resume aligns with a target role.
+🌐 Live Demo: https://kaif-ai-resume-analyzer.streamlit.app/
+
+📂 GitHub Repository: https://github.com/KAIFALIKHAN-RGB/AI-RESUME-ANALYZER
+
+⭐ An AI-powered Resume Analyzer built with Python, Streamlit, and Google's Gemini AI. The application analyzes resumes, detects profession-specific skills, identifies skill gaps, calculates a resume score, and provides personalized AI feedback. It also supports Job Description (JD) matching to evaluate how well a resume aligns with a target role.
 
 ---
 
